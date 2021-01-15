@@ -19,7 +19,6 @@ namespace ManagedScreenshotDemo
         [DllImport("user32.dll")]
         static extern IntPtr GetDesktopWindow();
 
-
         static async Task EncodeBytesAsync(string fileName, int width, int height, byte[] bytes)
         {
             var currentDirectory = Directory.GetCurrentDirectory();
@@ -92,6 +91,10 @@ namespace ManagedScreenshotDemo
                     d3dContext.CopyResource(bitmap, stagingTexture);
 
                     // Map our texture and get the bits
+                    var mapped = d3dContext.MapSubresource(stagingTexture, 0, SharpDX.Direct3D11.MapMode.Read, SharpDX.Direct3D11.MapFlags.None);
+                    var source = mapped.DataPointer;
+                    var sourceStride = mapped.RowPitch;
+
                     var bytes = new byte[size.Width * size.Height * 4]; // 4 bytes per pixel
                     unsafe
                     {
@@ -100,9 +103,6 @@ namespace ManagedScreenshotDemo
                             var dest = (IntPtr)bytesPointer;
                             var destStride = size.Width * 4;
 
-                            var mapped = d3dContext.MapSubresource(stagingTexture, 0, SharpDX.Direct3D11.MapMode.Read, SharpDX.Direct3D11.MapFlags.None);
-                            var source = mapped.DataPointer;
-                            var sourceStride = mapped.RowPitch;
                             for (int i = 0; i < size.Height; i++)
                             {
                                 SharpDX.Utilities.CopyMemory(dest, source, destStride);
@@ -112,6 +112,9 @@ namespace ManagedScreenshotDemo
                             }
                         }
                     }
+
+                    // Don't forget to unmap when you're done!
+                    d3dContext.UnmapSubresource(stagingTexture, 0);
 
                     // Encode it
                     // NOTE: Waiting here will stall the capture
