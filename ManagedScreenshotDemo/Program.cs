@@ -95,6 +95,7 @@ namespace ManagedScreenshotDemo
                     var source = mapped.DataPointer;
                     var sourceStride = mapped.RowPitch;
 
+                    // Allocate some memory to hold our copy
                     var bytes = new byte[size.Width * size.Height * 4]; // 4 bytes per pixel
                     unsafe
                     {
